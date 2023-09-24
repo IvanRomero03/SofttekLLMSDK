@@ -211,6 +211,7 @@ class SupabaseVectorStore(VectorStore):
         end;
         $$;
         """
+        ResponseArray = []
         for vector in vectors:
             # if not vector.id:
             #     raise ValueError("Vector ID cannot be empty when adding to Supabase.")
@@ -220,10 +221,11 @@ class SupabaseVectorStore(VectorStore):
             if vector.id is not None and vector.id != "":
                 print ("id is not none")
                 vec["id"] = vector.id
-            print(vec)
-            self.__client.table(self.__index_name).insert(
+            res = self.__client.table(self.__index_name).insert(
                 vec
             ).execute()
+            ResponseArray.append(res.data[0])
+        return ResponseArray
         
     @override
     def delete(self, ids: List[str], **kwargs: Any):
