@@ -233,15 +233,15 @@ class SupabaseVectorStore(VectorStore):
         self.__client.table(self.__index_name).delete().in_("id", ids).execute()
 
     @override
-    def search(self, vector: Vector | None = None, limit: int = 1, **kwargs: Any) -> List[Vector]:
+    def search(self, vector: Vector | None = None, top_k: int = 100, **kwargs: Any) -> List[Vector]:
         """
         Search for vectors in the index.
         """
-        query_response = self.__client.rpc("similarity_search_" + self.__index_name, {"embedding": vector.embeddings, "match_count": limit, "tablename": self.__index_name}).execute()
+        query_response = self.__client.rpc("similarity_search_" + self.__index_name, {"embedding": vector.embeddings, "match_count": top_k, "tablename": self.__index_name}).execute()
         vectors = []
-        print(query_response.data)
+        # print(query_response.data)
         for match in query_response.data:
-            print(match)
+            # print(match)
             metadata = vector.metadata if vector else {}
             metadata.update(match["metadata"])
             metadata["score"]= match["similarity"]

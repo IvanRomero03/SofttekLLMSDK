@@ -180,7 +180,7 @@ class Chatbot:
         return self.model(self.memory, description=self.description)
 
     def chat(
-        self, prompt: str, print_cache_score: bool = False, cache_kwargs: Dict = {}
+        self, prompt: str, print_cache_score: bool = False, cache_kwargs: Dict = {}, cache_indexes: List[str] = []
     ) -> Response:
         """
         Chatbot function that returns a response given a prompt. If a memory and/or cache are available, it considers previously stored conversations. Filters are applied to the prompt before processing to ensure it is valid.
@@ -214,7 +214,7 @@ class Chatbot:
         else:
             if self.__random_boolean():
                 cached_response, cache_score = self.cache.retrieve(
-                    prompt=prompt, **cache_kwargs
+                    prompt=prompt,cache_indexes=cache_indexes, **cache_kwargs
                 )
                 if print_cache_score:
                     print(f"Cache score: {cache_score}")
@@ -226,7 +226,8 @@ class Chatbot:
                     last_message = cached_response
                 else:
                     last_message = self.__call_model()
-                    self.cache.add(prompt=prompt, response=last_message, **cache_kwargs)
+                    id = self.cache.add(prompt=prompt, response=last_message, **cache_kwargs)
+                    last_message.additional_kwargs["cache_id"] = id
             else:
                 last_message = self.__call_model()
 
