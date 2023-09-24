@@ -1,6 +1,6 @@
 from datetime import datetime
 from time import perf_counter_ns
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 from uuid import uuid1
 
 from softtek_llm.embeddings import EmbeddingsModel
@@ -69,16 +69,19 @@ class Cache:
             metadata={
                 "response": response.message.content,
                 "model": response.model,
+
             },
         )
 
         self.vector_store.add([vector], **kwargs)
+        return vector.id
 
     def retrieve(
         self,
         prompt: str,
         threshold: float = 0.9,
         additional_kwargs: Dict = {},
+        cache_indexes: List[str] = [],
         **kwargs
     ) -> Tuple[Response | None, float]:
         """This function retrieves the best response from a query using the prompt provided by the user. It calculates the time taken to retrieve the data and returns the response.
@@ -101,6 +104,9 @@ class Cache:
             key=lambda x: x.metadata["score"],
             reverse=True,
         )
+
+        if len(cache_indexes) > 0:
+            matches = [match for match in matches if match.id in cache_indexes]
 
         if len(matches) == 0:
             return None, 0.0
